@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 from dataclasses import dataclass
 from matplotlib.figure import Figure
 from matplotlib.axes._axes import Axes
@@ -48,3 +51,43 @@ class TracheidTraits:
                 merge(kurtosis[['Tree', trait]].rename(columns={trait: 'Kurtosis'}), how='inner', on='Tree')
         result = TracheidTraitsDescription(*descriptions.values())
         return result
+
+    def rename_trees(self, trees: List[str]) -> None:
+        if len(trees) == len(self.trees):
+            self.data = self.data.replace(self.trees, trees)
+            self.trees = trees
+        else:
+            raise Exception('The number of tree names is not equal to the number of trees!')
+
+    def hist(self, trait: str) -> Tuple[Figure, Axes]:
+        n = len(self.trees)
+        fig, ax = plt.subplots(
+            ncols=n,
+            sharey='all',
+            sharex='all',
+            figsize=(n*3, 3)
+        )
+        i = 0
+        for tree, df in self.data.groupby('Tree'):
+            sns.set_style("white")
+            sns.histplot(df[trait], ax=ax[i], color='black', kde=True, stat='probability')
+            ax[i].set_title(tree)
+            i += 1
+
+        return fig, ax
+
+    def qqplot(self, trait: str) -> Tuple[Figure, Axes]:
+        n = len(self.trees)
+        fig, ax = plt.subplots(
+            ncols=n,
+            sharey='all',
+            sharex='all',
+            figsize=(n * 3, 3)
+        )
+        i = 0
+        for tree, df in self.data.groupby('Tree'):
+            stats.probplot(df[trait], dist=stats.loggamma, sparams=(2.5,), plot=ax[i])
+            ax[i].set_title(tree)
+            i += 1
+
+        return fig, ax
