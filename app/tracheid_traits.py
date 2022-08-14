@@ -1,6 +1,9 @@
 from dataclasses import dataclass
-from pandas import DataFrame
-from typing import List
+from matplotlib.figure import Figure
+from matplotlib.axes._axes import Axes
+from pandas import DataFrame, unique
+from scipy import stats
+from typing import List, Tuple
 from zhutils.tracheids import Tracheids
 
 
@@ -16,7 +19,8 @@ class TracheidTraitsDescription:
 
 class TracheidTraits:
     data: DataFrame
-    trait_names: List = ['TRW', '№', 'Dmax', 'Dmean', 'CWTmax', 'CWTmean']
+    trees: List[str]
+    names: List[str] = ['TRW', '№', 'Dmax', 'Dmean', 'CWTmax', 'CWTmean']
 
     def __init__(self, tracheids: Tracheids) -> None:
         max_values = tracheids.data.groupby(['Tree', 'Year']).max().reset_index()
@@ -28,11 +32,12 @@ class TracheidTraits:
         data['CWTmean'] = mean_values['CWTmean']
 
         self.data = data
+        self.trees = unique(data['Tree']).tolist()
 
     def describe(self) -> TracheidTraitsDescription:
         d = self.data.groupby('Tree').describe().unstack().reset_index()
         descriptions = dict()
-        for trait in self.trait_names:
+        for trait in self.names:
             description = d[d['level_0'] == trait].pivot(index='Tree', values=0, columns='level_1')
             skewness = self.data.groupby('Tree').skew().reset_index()
             kurtosis = self.data.groupby('Tree').apply(DataFrame.kurt).reset_index()
