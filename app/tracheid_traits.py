@@ -68,12 +68,11 @@ class TracheidTraits:
             sharex='all',
             figsize=(n*3, 3)
         )
-        i = 0
-        for tree, df in self.data.groupby('Tree'):
+        for i, group_data in enumerate(self.data.groupby('Tree')):
+            tree, df = group_data
             sns.set_style("white")
             sns.histplot(df[trait], ax=ax[i], color='black', kde=True, stat='probability')
             ax[i].set_title(tree)
-            i += 1
 
         return fig, ax
 
@@ -86,14 +85,14 @@ class TracheidTraits:
             sharex='all',
             figsize=(n * 3, 3)
         )
-        i = 0
-        for tree, df in self.data.groupby('Tree'):
+        for i, group_data in enumerate(self.data.groupby('Tree')):
+            tree, df = group_data
             stats.probplot(df[trait], dist=dist, plot=ax[i])
             ax[i].set_title(tree)
             i += 1
 
         return fig, ax
 
-    def __check_trait__(self, trait):
+    def __check_trait__(self, trait: str) -> None:
         if trait not in self.names:
             raise KeyError(f'Trait name "{trait}" is not in the list of trait names!')
