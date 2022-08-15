@@ -89,7 +89,26 @@ class TracheidTraits:
             tree, df = group_data
             stats.probplot(df[trait], dist=dist, plot=ax[i])
             ax[i].set_title(tree)
-            i += 1
+
+        return fig, ax
+
+    def scatter(self, x_trait: str, y_trait: str) -> Tuple[Figure, Axes]:
+        self.__check_trait__(x_trait)
+        self.__check_trait__(y_trait)
+        n = len(self.trees)
+        fig, ax = plt.subplots(
+            ncols=n,
+            sharey='all',
+            sharex='all',
+            figsize=(n * 3, 3)
+        )
+        ax[0].set_ylabel(y_trait)
+
+        for i, group_data in enumerate(self.data.groupby('Tree')):
+            tree, df = group_data
+            ax[i].scatter(df[x_trait], df[y_trait])
+            ax[i].set_title(tree)
+            ax[i].set_xlabel(x_trait)
 
         return fig, ax
 
