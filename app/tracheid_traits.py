@@ -60,6 +60,7 @@ class TracheidTraits:
             raise Exception('The number of tree names is not equal to the number of trees!')
 
     def hist(self, trait: str) -> Tuple[Figure, Axes]:
+        self.__check_trait__(trait)
         n = len(self.trees)
         fig, ax = plt.subplots(
             ncols=n,
@@ -77,6 +78,7 @@ class TracheidTraits:
         return fig, ax
 
     def qqplot(self, trait: str, dist: str = 'norm') -> Tuple[Figure, Axes]:
+        self.__check_trait__(trait)
         n = len(self.trees)
         fig, ax = plt.subplots(
             ncols=n,
@@ -91,3 +93,7 @@ class TracheidTraits:
             i += 1
 
         return fig, ax
+
+    def __check_trait__(self, trait):
+        if trait not in self.names:
+            raise KeyError(f'Trait name "{trait}" is not in the list of trait names!')
