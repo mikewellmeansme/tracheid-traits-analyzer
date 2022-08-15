@@ -76,7 +76,7 @@ class TracheidTraits:
 
         return fig, ax
 
-    def qqplot(self, trait: str) -> Tuple[Figure, Axes]:
+    def qqplot(self, trait: str, dist: str = 'norm') -> Tuple[Figure, Axes]:
         n = len(self.trees)
         fig, ax = plt.subplots(
             ncols=n,
@@ -86,7 +86,7 @@ class TracheidTraits:
         )
         i = 0
         for tree, df in self.data.groupby('Tree'):
-            stats.probplot(df[trait], dist=stats.loggamma, sparams=(2.5,), plot=ax[i])
+            stats.probplot(df[trait], dist=dist, plot=ax[i])
             ax[i].set_title(tree)
             i += 1
 
