@@ -7,6 +7,7 @@ from matplotlib.axes._axes import Axes
 from pandas import DataFrame, unique
 from scipy import stats
 from typing import List, Tuple
+from zhutils.plots.polyfit import get_poly1d, get_equation
 from zhutils.tracheids import Tracheids
 
 
@@ -106,9 +107,15 @@ class TracheidTraits:
 
         for i, group_data in enumerate(self.data.groupby('Tree')):
             tree, df = group_data
+            p = get_poly1d(df[x_trait], df[y_trait], 1)
+            equation = get_equation(p.coeffs)
+            x = sorted(df[x_trait])
+            y = p(x)
+            ax[i].plot(x, y, label=equation, color='black', linewidth=2)
             ax[i].scatter(df[x_trait], df[y_trait])
             ax[i].set_title(tree)
             ax[i].set_xlabel(x_trait)
+            ax[i].legend(frameon=False)
 
         return fig, ax
 
