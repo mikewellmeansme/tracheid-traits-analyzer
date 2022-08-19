@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
 from dataclasses import dataclass
@@ -29,7 +30,7 @@ class TracheidTraits:
     def __init__(self, tracheids: Tracheids) -> None:
         max_values = tracheids.data.groupby(['Tree', 'Year']).max().reset_index()
         mean_values = tracheids.data.groupby(['Tree', 'Year']).mean().reset_index()
-        data = max_values[['Tree', 'Year', 'TRW', '№']]
+        data = max_values[['Tree', 'Year', 'TRW', '№']].copy()
         data['Dmax'] = max_values['Dmean']
         data['CWTmax'] = max_values['CWTmean']
         data['Dmean'] = mean_values['Dmean']
@@ -59,6 +60,14 @@ class TracheidTraits:
             self.__trees__ = trees
         else:
             raise Exception('The number of tree names is not equal to the number of trees!')
+
+    def add_trait(self, name: str, data: DataFrame) -> None:
+        if name in self.__names__:
+            raise Exception(f"Trait with name '{name}' already exists!")
+        if not {'Tree', 'Year', name} <= set(data.columns):
+            raise Exception(f"Given DataFrame does not have all of the following columns: 'Tree', 'Year', '{name}' ")
+        self.__data__ = pd.merge(self.__data__, data[['Tree', 'Year', name]], on=('Tree', 'Year'), how='left')
+        self.__names__.append(name)
 
     def hist(self, trait: str) -> Tuple[Figure, Axes]:
         self.__check_trait__(trait)
