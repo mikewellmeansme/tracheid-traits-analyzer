@@ -22,9 +22,9 @@ class TracheidTraitsDescription:
 
 
 class TracheidTraits:
-    data: DataFrame
-    trees: List[str]
-    names: List[str] = ['TRW', '№', 'Dmax', 'Dmean', 'CWTmax', 'CWTmean']
+    __data__: DataFrame
+    __trees__: List[str]
+    __names__: List[str] = ['TRW', '№', 'Dmax', 'Dmean', 'CWTmax', 'CWTmean']
 
     def __init__(self, tracheids: Tracheids) -> None:
         max_values = tracheids.data.groupby(['Tree', 'Year']).max().reset_index()
@@ -35,16 +35,16 @@ class TracheidTraits:
         data['Dmean'] = mean_values['Dmean']
         data['CWTmean'] = mean_values['CWTmean']
 
-        self.data = data
-        self.trees = unique(data['Tree']).tolist()
+        self.__data__ = data
+        self.__trees__ = unique(data['Tree']).tolist()
 
     def describe(self) -> TracheidTraitsDescription:
-        d = self.data.groupby('Tree').describe().unstack().reset_index()
+        d = self.__data__.groupby('Tree').describe().unstack().reset_index()
         descriptions = dict()
-        for trait in self.names:
+        for trait in self.__names__:
             description = d[d['level_0'] == trait].pivot(index='Tree', values=0, columns='level_1')
-            skewness = self.data.groupby('Tree').skew().reset_index()
-            kurtosis = self.data.groupby('Tree').apply(DataFrame.kurt).reset_index()
+            skewness = self.__data__.groupby('Tree').skew().reset_index()
+            kurtosis = self.__data__.groupby('Tree').apply(DataFrame.kurt).reset_index()
             descriptions[trait] = \
                 description.\
                 reset_index().\
@@ -54,22 +54,22 @@ class TracheidTraits:
         return result
 
     def rename_trees(self, trees: List[str]) -> None:
-        if len(trees) == len(self.trees):
-            self.data = self.data.replace(self.trees, trees)
-            self.trees = trees
+        if len(trees) == len(self.__trees__):
+            self.__data__ = self.__data__.replace(self.__trees__, trees)
+            self.__trees__ = trees
         else:
             raise Exception('The number of tree names is not equal to the number of trees!')
 
     def hist(self, trait: str) -> Tuple[Figure, Axes]:
         self.__check_trait__(trait)
-        n = len(self.trees)
+        n = len(self.__trees__)
         fig, ax = plt.subplots(
             ncols=n,
             sharey='all',
             sharex='all',
             figsize=(n*3, 3)
         )
-        for i, group_data in enumerate(self.data.groupby('Tree')):
+        for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             sns.set_style("white")
             sns.histplot(df[trait], ax=ax[i], color='black', kde=True, stat='probability')
@@ -79,14 +79,14 @@ class TracheidTraits:
 
     def qqplot(self, trait: str, dist: str = 'norm') -> Tuple[Figure, Axes]:
         self.__check_trait__(trait)
-        n = len(self.trees)
+        n = len(self.__trees__)
         fig, ax = plt.subplots(
             ncols=n,
             sharey='all',
             sharex='all',
             figsize=(n * 3, 3)
         )
-        for i, group_data in enumerate(self.data.groupby('Tree')):
+        for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             stats.probplot(df[trait], dist=dist, plot=ax[i])
             ax[i].set_title(tree)
@@ -96,7 +96,7 @@ class TracheidTraits:
     def scatter(self, x_trait: str, y_trait: str) -> Tuple[Figure, Axes]:
         self.__check_trait__(x_trait)
         self.__check_trait__(y_trait)
-        n = len(self.trees)
+        n = len(self.__trees__)
         fig, ax = plt.subplots(
             ncols=n,
             sharey='all',
@@ -105,7 +105,7 @@ class TracheidTraits:
         )
         ax[0].set_ylabel(y_trait)
 
-        for i, group_data in enumerate(self.data.groupby('Tree')):
+        for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             p = get_poly1d(df[x_trait], df[y_trait], 1)
             equation = get_equation(p.coeffs)
@@ -120,5 +120,5 @@ class TracheidTraits:
         return fig, ax
 
     def __check_trait__(self, trait: str) -> None:
-        if trait not in self.names:
+        if trait not in self.__names__:
             raise KeyError(f'Trait name "{trait}" is not in the list of trait names!')
