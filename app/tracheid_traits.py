@@ -7,7 +7,7 @@ from matplotlib.figure import Figure
 from matplotlib.axes._axes import Axes
 from pandas import DataFrame, unique
 from scipy import stats
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Union
 from zhutils.plots.polyfit import get_poly1d, get_equation
 from zhutils.tracheids import Tracheids
 
@@ -55,11 +55,10 @@ class TracheidTraits:
         return result
 
     def rename_trees(self, trees: List[str]) -> None:
-        if len(trees) == len(self.__trees__):
-            self.__data__ = self.__data__.replace(self.__trees__, trees)
-            self.__trees__ = trees
-        else:
+        if len(trees) != len(self.__trees__):
             raise Exception('The number of tree names is not equal to the number of trees!')
+        self.__data__ = self.__data__.replace(self.__trees__, trees)
+        self.__trees__ = trees
 
     def add_trait(self, name: str, data: DataFrame) -> None:
         if name in self.__names__:
@@ -68,6 +67,27 @@ class TracheidTraits:
             raise Exception(f"Given DataFrame does not have all of the following columns: 'Tree', 'Year', '{name}' ")
         self.__data__ = pd.merge(self.__data__, data[['Tree', 'Year', name]], on=('Tree', 'Year'), how='left')
         self.__names__.append(name)
+
+    def get_traits(self, traits: Optional[Union[str, List]] = None, trees: Optional[str] = None) -> DataFrame:
+        result = self.__data__.copy()
+
+        if isinstance(traits, str):
+            self.__check_trait__(traits)
+            result = result[['Year', 'Tree', traits]]
+        elif isinstance(traits, List):
+            for trait in traits:
+                self.__check_trait__(trait)
+            result = result[['Year', 'Tree', *traits]]
+
+        if isinstance(trees, str):
+            self.__check_tree__(trees)
+            result = result[result['Tree'] == trees]
+        elif isinstance(trees, List):
+            for tree in trees:
+                self.__check_tree__(tree)
+            result = result[result['Tree'].isin(trees)]
+
+        return result.reset_index(drop=True)
 
     def hist(self, trait: str) -> Tuple[Figure, Axes]:
         self.__check_trait__(trait)
@@ -131,3 +151,7 @@ class TracheidTraits:
     def __check_trait__(self, trait: str) -> None:
         if trait not in self.__names__:
             raise KeyError(f'Trait name "{trait}" is not in the list of trait names!')
+
+    def __check_tree__(self, tree: str) -> None:
+        if tree not in self.__trees__:
+            raise KeyError(f'Tree name "{tree}" is not in the list of tree names!')
