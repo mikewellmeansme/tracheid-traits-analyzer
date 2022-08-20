@@ -68,7 +68,12 @@ class TracheidTraits:
         self.__data__ = pd.merge(self.__data__, data[['Tree', 'Year', name]], on=('Tree', 'Year'), how='left')
         self.__names__.append(name)
 
-    def get_traits(self, traits: Optional[Union[str, List]] = None, trees: Optional[str] = None) -> DataFrame:
+    def get_traits(
+            self,
+            traits: Optional[Union[str, List[str]]] = None,
+            trees: Optional[Union[str, List[str]]] = None
+    ) -> DataFrame:
+
         result = self.__data__.copy()
 
         if isinstance(traits, str):
