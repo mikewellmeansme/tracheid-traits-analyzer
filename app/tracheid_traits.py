@@ -6,8 +6,8 @@ from matplotlib.figure import Figure
 from matplotlib.axes._axes import Axes
 from pandas import DataFrame, unique, merge
 from scipy import stats
-from typing import List, Tuple, Optional, Union
-from zhutils.plots.polyfit import get_poly1d, get_equation
+from typing import Dict, List, Optional, Tuple, Union
+from zhutils.approximators import Approximator
 from zhutils.tracheids import Tracheids
 
 
@@ -119,27 +119,44 @@ class TracheidTraits:
     def scatter(
             self,
             x_trait: str,
-            y_trait: str
+            y_trait: str,
+            approximator: Optional[Approximator] = None,
+            approximator_kws: Optional[Dict] = None,
+            plot_kws: Optional[Dict] = None,
+            scatter_kws: Optional[Dict] = None,
+            axes: Optional[Axes] = None
     ) -> Tuple[Figure, Axes]:
+        # TODO: custom axes shape
+
         self.__check_trait__(x_trait)
         self.__check_trait__(y_trait)
+
+        approximator_kws = {} if approximator_kws is None else approximator_kws
+        plot_kws = {} if plot_kws is None else plot_kws
+        scatter_kws = {} if scatter_kws is None else scatter_kws
+
         n = len(self.__trees__)
-        fig, ax = self.__get_subplots__(1, n)
-        ax[0].set_ylabel(y_trait)
+        if axes is None:
+            fig, axes = self.__get_subplots__(1, n)
+        else:
+            fig = axes.figure
+
+        axes[0].set_ylabel(y_trait)
 
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
-            p = get_poly1d(df[x_trait], df[y_trait], 1)
-            equation = get_equation(p.coeffs)
-            x = sorted(df[x_trait])
-            y = p(x)
-            ax[i].plot(x, y, label=equation, color='black', linewidth=2)
-            ax[i].scatter(df[x_trait], df[y_trait])
-            ax[i].set_title(tree)
-            ax[i].set_xlabel(x_trait)
-            ax[i].legend(frameon=False)
+            if approximator is not None:
+                approximator.fit(df[x_trait], df[y_trait], **approximator_kws)
+                equation = approximator.get_equation()
+                x = sorted(df[x_trait])
+                y = approximator.predict(x)
+                axes[i].plot(x, y, label=equation, **plot_kws)
+                axes[i].legend(frameon=False)
+            axes[i].scatter(df[x_trait], df[y_trait], **scatter_kws)
+            axes[i].set_title(tree)
+            axes[i].set_xlabel(x_trait)
 
-        return fig, ax
+        return fig, axes
 
     @staticmethod
     def __get_subplots__(
