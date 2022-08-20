@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
-import pandas as pd
 import seaborn as sns
 
 from dataclasses import dataclass
 from matplotlib.figure import Figure
 from matplotlib.axes._axes import Axes
-from pandas import DataFrame, unique
+from pandas import DataFrame, unique, merge
 from scipy import stats
 from typing import List, Tuple, Optional, Union
 from zhutils.plots.polyfit import get_poly1d, get_equation
@@ -65,7 +64,7 @@ class TracheidTraits:
             raise Exception(f"Trait with name '{name}' already exists!")
         if not {'Tree', 'Year', name} <= set(data.columns):
             raise Exception(f"Given DataFrame does not have all of the following columns: 'Tree', 'Year', '{name}' ")
-        self.__data__ = pd.merge(self.__data__, data[['Tree', 'Year', name]], on=('Tree', 'Year'), how='left')
+        self.__data__ = merge(self.__data__, data[['Tree', 'Year', name]], on=('Tree', 'Year'), how='left')
         self.__names__.append(name)
 
     def get_traits(
@@ -97,12 +96,7 @@ class TracheidTraits:
     def hist(self, trait: str) -> Tuple[Figure, Axes]:
         self.__check_trait__(trait)
         n = len(self.__trees__)
-        fig, ax = plt.subplots(
-            ncols=n,
-            sharey='all',
-            sharex='all',
-            figsize=(n*3, 3)
-        )
+        fig, ax = self.__get_subplots__(1, n)
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             sns.set_style("white")
@@ -114,12 +108,7 @@ class TracheidTraits:
     def qqplot(self, trait: str, dist: str = 'norm') -> Tuple[Figure, Axes]:
         self.__check_trait__(trait)
         n = len(self.__trees__)
-        fig, ax = plt.subplots(
-            ncols=n,
-            sharey='all',
-            sharex='all',
-            figsize=(n * 3, 3)
-        )
+        fig, ax = self.__get_subplots__(1, n)
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             stats.probplot(df[trait], dist=dist, plot=ax[i])
@@ -127,16 +116,15 @@ class TracheidTraits:
 
         return fig, ax
 
-    def scatter(self, x_trait: str, y_trait: str) -> Tuple[Figure, Axes]:
+    def scatter(
+            self,
+            x_trait: str,
+            y_trait: str
+    ) -> Tuple[Figure, Axes]:
         self.__check_trait__(x_trait)
         self.__check_trait__(y_trait)
         n = len(self.__trees__)
-        fig, ax = plt.subplots(
-            ncols=n,
-            sharey='all',
-            sharex='all',
-            figsize=(n * 3, 3)
-        )
+        fig, ax = self.__get_subplots__(1, n)
         ax[0].set_ylabel(y_trait)
 
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
@@ -151,6 +139,24 @@ class TracheidTraits:
             ax[i].set_xlabel(x_trait)
             ax[i].legend(frameon=False)
 
+        return fig, ax
+
+    @staticmethod
+    def __get_subplots__(
+            nrows: int,
+            ncols: int,
+            sharex: str = 'all',
+            sharey: str = 'all',
+            **subplots_kwargs
+    ) -> Tuple[Figure, Axes]:
+        fig, ax = plt.subplots(
+            ncols=ncols,
+            nrows=nrows,
+            sharex=sharex,
+            sharey=sharey,
+            figsize=(ncols * 3, nrows * 3),
+            **subplots_kwargs
+        )
         return fig, ax
 
     def __check_trait__(self, trait: str) -> None:
