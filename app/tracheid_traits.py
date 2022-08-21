@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 
 from dataclasses import dataclass
@@ -139,7 +140,10 @@ class TracheidTraits:
         if axes is None:
             fig, axes = self.__get_subplots__(1, n)
         else:
-            fig = axes.figure
+            if isinstance(axes, np.ndarray):
+                fig = axes[0].figure
+            else:
+                fig = axes.figure
 
         axes[0].set_ylabel(y_trait)
 
