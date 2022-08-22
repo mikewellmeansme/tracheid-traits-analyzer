@@ -1,10 +1,8 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
 
 from dataclasses import dataclass
-from matplotlib.figure import Figure
-from matplotlib.axes._axes import Axes
+from matplotlib.figure import Figure, Axes
 from pandas import DataFrame, unique, merge
 from scipy import stats
 from typing import Dict, List, Optional, Tuple, Union
@@ -94,28 +92,39 @@ class TracheidTraits:
 
         return result.reset_index(drop=True)
 
-    def hist(self, trait: str) -> Tuple[Figure, Axes]:
+    def hist(
+            self,
+            trait: str,
+            axes: Optional[List[Axes]] = None
+    ) -> Tuple[Figure, List[Axes]]:
+
         self.__check_trait__(trait)
         n = len(self.__trees__)
-        fig, ax = self.__get_subplots__(1, n)
+        fig, axes = self.__get_subplots__(1, n, axes)
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             sns.set_style("white")
-            sns.histplot(df[trait], ax=ax[i], color='black', kde=True, stat='probability')
-            ax[i].set_title(tree)
+            sns.histplot(df[trait], ax=axes[i], color='black', kde=True, stat='probability')
+            axes[i].set_title(tree)
 
-        return fig, ax
+        return fig, axes
 
-    def qqplot(self, trait: str, dist: str = 'norm') -> Tuple[Figure, Axes]:
+    def qqplot(
+            self,
+            trait: str,
+            dist: str = 'norm',
+            axes: Optional[List[Axes]] = None
+    ) -> Tuple[Figure, List[Axes]]:
+
         self.__check_trait__(trait)
         n = len(self.__trees__)
-        fig, ax = self.__get_subplots__(1, n)
+        fig, axes = self.__get_subplots__(1, n, axes)
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
-            stats.probplot(df[trait], dist=dist, plot=ax[i])
-            ax[i].set_title(tree)
+            stats.probplot(df[trait], dist=dist, plot=axes[i])
+            axes[i].set_title(tree)
 
-        return fig, ax
+        return fig, axes
 
     def scatter(
             self,
@@ -125,9 +134,8 @@ class TracheidTraits:
             approximator_kws: Optional[Dict] = None,
             plot_kws: Optional[Dict] = None,
             scatter_kws: Optional[Dict] = None,
-            axes: Optional[Axes] = None
-    ) -> Tuple[Figure, Axes]:
-        # TODO: custom axes shape
+            axes: Optional[List[Axes]] = None
+    ) -> Tuple[Figure, List[Axes]]:
 
         self.__check_trait__(x_trait)
         self.__check_trait__(y_trait)
@@ -137,13 +145,7 @@ class TracheidTraits:
         scatter_kws = {} if scatter_kws is None else scatter_kws
 
         n = len(self.__trees__)
-        if axes is None:
-            fig, axes = self.__get_subplots__(1, n)
-        else:
-            if isinstance(axes, np.ndarray):
-                fig = axes[0].figure
-            else:
-                fig = axes.figure
+        fig, axes = self.__get_subplots__(1, n, axes)
 
         axes[0].set_ylabel(y_trait)
 
@@ -166,19 +168,23 @@ class TracheidTraits:
     def __get_subplots__(
             nrows: int,
             ncols: int,
+            axes: Optional[List[Axes]] = None,
             sharex: str = 'all',
             sharey: str = 'all',
             **subplots_kwargs
-    ) -> Tuple[Figure, Axes]:
-        fig, ax = plt.subplots(
-            ncols=ncols,
-            nrows=nrows,
-            sharex=sharex,
-            sharey=sharey,
-            figsize=(ncols * 3, nrows * 3),
-            **subplots_kwargs
-        )
-        return fig, ax
+    ) -> Tuple[Figure, List[Axes]]:
+        if axes is None:
+            fig, axes = plt.subplots(
+                ncols=ncols,
+                nrows=nrows,
+                sharex=sharex,
+                sharey=sharey,
+                figsize=(ncols * 3, nrows * 3),
+                **subplots_kwargs
+            )
+        else:
+            fig = axes[0].figure
+        return fig, axes
 
     def __check_trait__(self, trait: str) -> None:
         if trait not in self.__names__:
