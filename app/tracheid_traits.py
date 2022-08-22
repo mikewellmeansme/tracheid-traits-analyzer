@@ -3,7 +3,7 @@ import seaborn as sns
 
 from dataclasses import dataclass
 from matplotlib.figure import Figure, Axes
-from pandas import DataFrame, unique, merge
+from pandas import DataFrame, unique, merge, concat
 from scipy import stats
 from typing import Dict, List, Optional, Tuple, Union
 from zhutils.approximators import Approximator
@@ -163,6 +163,38 @@ class TracheidTraits:
             axes[i].set_xlabel(x_trait)
 
         return fig, axes
+
+    def apply_model(
+            self,
+            x_trait: str,
+            y_trait: str,
+            approximator: Approximator,
+            approximator_kws: Optional[Dict] = None
+    ) -> Tuple[DataFrame, Dict[str, List[float]]]:
+
+        self.__check_trait__(x_trait)
+        self.__check_trait__(y_trait)
+
+        approximator_kws = {} if approximator_kws is None else approximator_kws
+
+        result = DataFrame({
+            'Tree': [],
+            'Year': [],
+            f'{y_trait}_model': []
+        })
+        coeffs = dict()
+        for i, group_data in enumerate(self.__data__.groupby('Tree')):
+            tree, df = group_data
+            approximator.fit(df[x_trait], df[y_trait], **approximator_kws)
+            modeled_values = DataFrame({
+                'Tree': df['Tree'],
+                'Year': df['Year'],
+                f'{y_trait}_model': approximator.predict(df[x_trait])
+            })
+            result = concat([result, modeled_values])
+            coeffs[tree] = approximator.coeffs
+
+        return result.reset_index(drop=True), coeffs
 
     @staticmethod
     def __get_subplots__(
