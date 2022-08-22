@@ -1,23 +1,12 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from dataclasses import dataclass
 from matplotlib.figure import Figure, Axes
 from pandas import DataFrame, unique, merge, concat
 from scipy import stats
 from typing import Dict, List, Optional, Tuple, Union
 from zhutils.approximators import Approximator
 from zhutils.tracheids import Tracheids
-
-
-@dataclass
-class TracheidTraitsDescription:
-    trw: DataFrame
-    cell_amount: DataFrame
-    d_max: DataFrame
-    d_mean: DataFrame
-    cwt_max: DataFrame
-    cwt_mean: DataFrame
 
 
 class TracheidTraits:
@@ -37,19 +26,22 @@ class TracheidTraits:
         self.__data__ = data
         self.__trees__ = unique(data['Tree']).tolist()
 
-    def describe(self) -> TracheidTraitsDescription:
+    def describe(self, trait: str) -> DataFrame:
+        self.__check_trait__(trait)
         d = self.__data__.groupby('Tree').describe().unstack().reset_index()
-        descriptions = dict()
-        for trait in self.__names__:
-            description = d[d['level_0'] == trait].pivot(index='Tree', values=0, columns='level_1')
-            skewness = self.__data__.groupby('Tree').skew().reset_index()
-            kurtosis = self.__data__.groupby('Tree').apply(DataFrame.kurt).reset_index()
-            descriptions[trait] = \
-                description.\
-                reset_index().\
-                merge(skewness[['Tree', trait]].rename(columns={trait: 'Skewness'}), how='inner', on='Tree').\
-                merge(kurtosis[['Tree', trait]].rename(columns={trait: 'Kurtosis'}), how='inner', on='Tree')
-        result = TracheidTraitsDescription(*descriptions.values())
+
+        description = d[d['level_0'] == trait].pivot(index='Tree', values=0, columns='level_1')
+        skewness = self.__data__.groupby('Tree').skew().reset_index()
+
+        # FutureWarning: Dropping of nuisance columns in DataFrame reductions (with 'numeric_only=None') is deprecated;
+        # in a future version this will raise TypeError.  Select only valid columns before calling the reduction.
+        kurtosis = self.__data__.groupby('Tree').apply(DataFrame.kurt).reset_index()
+
+        result = \
+            description.\
+            reset_index().\
+            merge(skewness[['Tree', trait]].rename(columns={trait: 'Skewness'}), how='inner', on='Tree').\
+            merge(kurtosis[['Tree', trait]].rename(columns={trait: 'Kurtosis'}), how='inner', on='Tree')
         return result
 
     def rename_trees(self, trees: List[str]) -> None:
