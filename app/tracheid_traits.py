@@ -88,12 +88,13 @@ class TracheidTraits:
     def hist(
             self,
             trait: str,
-            axes: Optional[List[Axes]] = None
+            axes: Optional[List[Axes]] = None,
+            subplots_kws: Optional[Dict] = None
     ) -> Tuple[Figure, List[Axes]]:
 
         self.__check_trait__(trait)
         n = len(self.__trees__)
-        fig, axes = self.__get_subplots__(1, n, axes)
+        fig, axes = self.__get_subplots__(1, n, axes, subplots_kws)
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             sns.set_style("white")
@@ -106,12 +107,13 @@ class TracheidTraits:
             self,
             trait: str,
             dist: str = 'norm',
-            axes: Optional[List[Axes]] = None
+            axes: Optional[List[Axes]] = None,
+            subplots_kws: Optional[Dict] = None
     ) -> Tuple[Figure, List[Axes]]:
 
         self.__check_trait__(trait)
         n = len(self.__trees__)
-        fig, axes = self.__get_subplots__(1, n, axes)
+        fig, axes = self.__get_subplots__(1, n, axes, subplots_kws)
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
             stats.probplot(df[trait], dist=dist, plot=axes[i])
@@ -131,7 +133,8 @@ class TracheidTraits:
             approximator_kws: Optional[Dict] = None,
             plot_kws: Optional[Dict] = None,
             scatter_kws: Optional[Dict] = None,
-            axes: Optional[List[Axes]] = None
+            axes: Optional[List[Axes]] = None,
+            subplots_kws: Optional[Dict] = None
     ) -> Tuple[Figure, List[Axes]]:
 
         self.__check_trait__(x_trait)
@@ -150,7 +153,7 @@ class TracheidTraits:
         scatter_kws = {} if scatter_kws is None else scatter_kws
 
         n = len(trees)
-        fig, axes = self.__get_subplots__(1, n, axes)
+        fig, axes = self.__get_subplots__(1, n, axes, subplots_kws)
 
         groups = self.__data__.groupby('Tree')
 
@@ -207,18 +210,20 @@ class TracheidTraits:
             nrows: int,
             ncols: int,
             axes: Optional[List[Axes]] = None,
-            sharex: str = 'all',
-            sharey: str = 'all',
-            **subplots_kwargs
+            subplots_kws: Optional[Dict] = None
     ) -> Tuple[Figure, List[Axes]]:
         if axes is None:
+
+            subplots_kws = {
+                'sharex': 'all',
+                'sharey': 'all',
+                'figsize': (ncols * 3, nrows * 3)
+            } if subplots_kws is None else subplots_kws
+
             fig, axes = plt.subplots(
                 ncols=ncols,
                 nrows=nrows,
-                sharex=sharex,
-                sharey=sharey,
-                figsize=(ncols * 3, nrows * 3),
-                **subplots_kwargs
+                **subplots_kws
             )
         else:
             fig = axes[0].figure
