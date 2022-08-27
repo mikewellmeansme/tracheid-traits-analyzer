@@ -1,3 +1,4 @@
+from tabnanny import check
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -122,6 +123,7 @@ class TracheidTraits:
             self,
             x_trait: str,
             y_trait: str,
+            trees: Optional[List[str]] = None,
             labels: Optional[Dict[str, str]] = None,
             xlabel: Optional[str] = None,
             ylabel: Optional[str] = None,
@@ -135,16 +137,24 @@ class TracheidTraits:
         self.__check_trait__(x_trait)
         self.__check_trait__(y_trait)
 
+        trees = trees if trees else sorted(self.__trees__)
+        for tree in trees:
+            self.__check_tree__(tree)
+        
+        if labels:
+            if not set(trees) <= set(labels.keys()):
+                raise KeyError(f'The given labels do not correspond to the all given trees!')
+
         approximator_kws = {} if approximator_kws is None else approximator_kws
         plot_kws = {} if plot_kws is None else plot_kws
         scatter_kws = {} if scatter_kws is None else scatter_kws
 
-        n = len(self.__trees__)
+        n = len(trees)
         fig, axes = self.__get_subplots__(1, n, axes)
 
         groups = self.__data__.groupby('Tree')
 
-        for i, tree in enumerate(sorted(self.__trees__)):
+        for i, tree in enumerate(trees):
             df = groups.get_group(tree)
             if approximator is not None:
                 approximator.fit(df[x_trait], df[y_trait], **approximator_kws)
