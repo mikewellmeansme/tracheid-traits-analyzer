@@ -122,7 +122,9 @@ class TracheidTraits:
             self,
             x_trait: str,
             y_trait: str,
-            label: Optional[str] = None,
+            labels: Optional[Dict[str, str]] = None,
+            xlabel: Optional[str] = None,
+            ylabel: Optional[str] = None,
             approximator: Optional[Approximator] = None,
             approximator_kws: Optional[Dict] = None,
             plot_kws: Optional[Dict] = None,
@@ -140,7 +142,6 @@ class TracheidTraits:
         n = len(self.__trees__)
         fig, axes = self.__get_subplots__(1, n, axes)
 
-        axes[0].set_ylabel(y_trait)
         groups = self.__data__.groupby('Tree')
 
         for i, tree in enumerate(sorted(self.__trees__)):
@@ -150,11 +151,12 @@ class TracheidTraits:
                 equation = approximator.get_equation(2)
                 x = sorted(df[x_trait])
                 y = approximator.predict(x)
-                axes[i].plot(x, y, label=label if label else equation, **plot_kws)
+                axes[i].plot(x, y, label=labels[tree] if labels else equation, **plot_kws)
                 axes[i].legend(frameon=False)
             axes[i].scatter(df[x_trait], df[y_trait], **scatter_kws)
             axes[i].set_title(tree)
-            axes[i].set_xlabel(x_trait)
+            axes[i].set_xlabel(xlabel if xlabel else x_trait)
+            axes[i].set_ylabel(ylabel if ylabel else y_trait)
 
         return fig, axes
 
