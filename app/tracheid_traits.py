@@ -85,6 +85,9 @@ class TracheidTraits:
             result = result[result['Tree'].isin(trees)]
 
         return result.reset_index(drop=True)
+    
+    def get_trees(self) -> List[str]:
+        return self.__trees__.copy()
 
     def hist(
             self,
