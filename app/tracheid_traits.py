@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 
 from matplotlib.figure import Figure, Axes
 from pandas import DataFrame, unique, merge, concat
 from scipy import stats
+from sklearn.metrics import r2_score
 from typing import Dict, List, Optional, Tuple, Union
 from zhutils.approximators import Approximator
 from zhutils.tracheids import Tracheids
@@ -133,7 +135,8 @@ class TracheidTraits:
             plot_kws: Optional[Dict] = None,
             scatter_kws: Optional[Dict] = None,
             axes: Optional[List[Axes]] = None,
-            subplots_kws: Optional[Dict] = None
+            subplots_kws: Optional[Dict] = None,
+            show_r2: bool = True
     ) -> Tuple[Figure, List[Axes]]:
 
         self.__check_trait__(x_trait)
@@ -161,9 +164,13 @@ class TracheidTraits:
             if approximator is not None:
                 approximator.fit(df[x_trait], df[y_trait], **approximator_kws)
                 equation = approximator.get_equation(2)
-                x = sorted(df[x_trait])
+                
+                r2 = f'\n$R^{{2}}={r2_score(df[y_trait], approximator.predict(df[x_trait])):.2f}$' if show_r2 else ''
+
+                x = np.arange(min(df[x_trait]), max(df[x_trait]), 1/len(df[x_trait]))
                 y = approximator.predict(x)
-                axes[i].plot(x, y, label=labels[tree] if labels else equation, **plot_kws)
+                label = labels[tree] if labels else equation
+                axes[i].plot(x, y, label= label + r2, **plot_kws)
                 axes[i].legend(frameon=False)
             axes[i].scatter(df[x_trait], df[y_trait], **scatter_kws)
             axes[i].set_title(tree)
