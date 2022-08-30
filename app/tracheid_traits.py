@@ -130,7 +130,6 @@ class TracheidTraits:
             x_trait: str,
             y_trait: str,
             trees: Optional[List[str]] = None,
-            labels: Optional[Dict[str, str]] = None,
             xlabel: Optional[str] = None,
             ylabel: Optional[str] = None,
             approximator: Optional[Approximator] = None,
@@ -148,10 +147,6 @@ class TracheidTraits:
         trees = trees if trees else sorted(self.__trees__)
         for tree in trees:
             self.__check_tree__(tree)
-        
-        if labels:
-            if not set(trees) <= set(labels.keys()):
-                raise KeyError(f'The given labels do not correspond to the all given trees!')
 
         approximator_kws = {} if approximator_kws is None else approximator_kws
         plot_kws = {} if plot_kws is None else plot_kws
@@ -162,23 +157,26 @@ class TracheidTraits:
 
         groups = self.__data__.groupby('Tree')
 
+        plot_label = plot_kws.pop('label', None)
+
         for i, tree in enumerate(trees):
             df = groups.get_group(tree)
             if approximator is not None:
                 approximator.fit(df[x_trait], df[y_trait], **approximator_kws)
                 equation = approximator.get_equation(2)
-                
                 r2 = f'\n$R^{{2}}={r2_score(df[y_trait], approximator.predict(df[x_trait])):.2f}$' if show_r2 else ''
-
                 x = np.arange(min(df[x_trait]), max(df[x_trait]), 1/len(df[x_trait]))
                 y = approximator.predict(x)
-                label = labels[tree] if labels else equation
-                axes[i].plot(x, y, label= label + r2, **plot_kws)
-                axes[i].legend(frameon=False)
+                
+                label = plot_label if plot_label else equation
+
+                axes[i].plot(x, y, label=label + r2, **plot_kws)
+            
             axes[i].scatter(df[x_trait], df[y_trait], **scatter_kws)
             axes[i].set_title(tree)
             axes[i].set_xlabel(xlabel if xlabel else x_trait)
             axes[i].set_ylabel(ylabel if ylabel else y_trait)
+            axes[i].legend(frameon=False)
 
         return fig, axes
 
