@@ -1,5 +1,5 @@
-# Tracheidogram analyzer
-Application for analyzing the tracheidogram and climate data interconnections.
+# Tracheid traits analyzer
+Application for analyzing the tracheid traits and their interconnections with climate data.
 
 Used in:
 
