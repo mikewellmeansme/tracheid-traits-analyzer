@@ -1,3 +1,4 @@
+import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -9,12 +10,38 @@ from zhutils.tracheids import Tracheids
 
 from exponential_approximator import Exponential
 
-# TODO: deal with fonts in hists and qqplots
+
 plt.rcParams['font.size'] = '16'
 plt.rcParams['font.family'] = 'Times New Roman'
 
+def exponential_scatterplot(tracheid, tracheid_traits, trait_type = 'D'):
+    y_min = tracheid.data.min()[f'{trait_type}mean']*0.95
 
-def main(tracheid_path, climate_path):
+    fig, axes = tracheid_traits.scatter(
+        '№',
+        f'{trait_type}max',
+        approximator=Exponential(y_min),
+        plot_kws={'color': 'black', 'linewidth': 2, 'label': f'{trait_type}max(N)'},
+        scatter_kws={'color': 'white', 'edgecolor':'red', 'label': f'{trait_type}max'}, 
+        subplots_kws={'sharex': 'all', 'sharey': 'all', 'figsize': (5*5, 5)}
+    )
+    fig, axes = tracheid_traits.scatter(
+        '№',
+        f'{trait_type}mean',
+        approximator=Exponential(y_min),
+        plot_kws={'color': 'black', 'linewidth': 2, 'linestyle': '--', 'label': f'{trait_type}mean(N)'},
+        axes=axes,
+        scatter_kws={'color': 'white', 'edgecolor':'blue', 'label': f'{trait_type}mean'},
+        xlabel='N',
+        ylabel=f'{trait_type} (μm)'
+    )
+    for ax in axes:
+        ax.legend(frameon=True)
+    
+    return y_min, fig, ax
+
+
+def main(tracheid_path, climate_path, outplut_path):
     climate_df = DailyDataFrame(pd.read_csv(climate_path))
     tr = Tracheids(tracheid_path, tracheid_path, [])
     tr_t = TracheidTraits(tr)
@@ -33,53 +60,11 @@ def main(tracheid_path, climate_path):
     )
     result_plots['TRW_N'] = fig
 
-    d_min = tr.data.min()['Dmean']*0.95
-
-    fig, axes = tr_t.scatter(
-        '№',
-        'Dmax',
-        approximator=Exponential(d_min),
-        plot_kws={'color': 'black', 'linewidth': 2, 'label': 'Dmax(N)'},
-        scatter_kws={'color': 'white', 'edgecolor':'red', 'label': 'Dmax'}, 
-        subplots_kws={'sharex': 'all', 'sharey': 'all', 'figsize': (5*5, 5)}
-    )
-    fig, axes = tr_t.scatter(
-        '№',
-        'Dmean',
-        approximator=Exponential(d_min),
-        plot_kws={'color': 'black', 'linewidth': 2, 'linestyle': '--', 'label': 'Dmean(N)'},
-        axes=axes,
-        scatter_kws={'color': 'white', 'edgecolor':'blue', 'label': 'Dmean'},
-        xlabel='N',
-        ylabel='D (μm)'
-    )
-    for ax in axes:
-        ax.legend(frameon=True)
+    d_min, fig, ax = exponential_scatterplot(tr, tr_t, 'D')
     
     result_plots['D_N'] = fig
 
-    cwt_min = tr.data.min()['CWTmean']*0.95
-
-    fig, axes = tr_t.scatter(
-        '№',
-        'CWTmax',
-        approximator=Exponential(cwt_min),
-        plot_kws={'color': 'black', 'linewidth': 2, 'label': 'CWTmax(N)'},
-        scatter_kws={'color': 'white', 'edgecolor':'red', 'label': 'CWTmax'}, 
-        subplots_kws={'sharex': 'all', 'sharey': 'all', 'figsize': (5*5, 5)}
-    )
-    fig, axes = tr_t.scatter(
-        '№',
-        'CWTmean',
-        approximator=Exponential(cwt_min),
-        plot_kws={'color': 'black', 'linewidth': 2, 'linestyle': '--', 'label': 'CWTmean(N)'},
-        axes=axes,
-        scatter_kws={'color': 'white', 'edgecolor':'blue', 'label': 'CWTmean'},
-        xlabel='N',
-        ylabel='CWT (μm)'
-    )
-    for ax in axes:
-        ax.legend(frameon=True)
+    cwt_min, fig, ax = exponential_scatterplot(tr, tr_t, 'CWT')
     
     result_plots['CWT_N'] = fig
 
@@ -110,15 +95,23 @@ def main(tracheid_path, climate_path):
         result_plots[f'hist_{trait}'] = fig
         fig, ax = tr_t.qqplot(trait, subplots_kws={'sharex': 'all', 'sharey': 'all', 'figsize': (5*5, 5)})
         result_plots[f'qqplot_{trait}'] = fig
-        result_tables[trait] = tr_t.describe(trait)
+        result_tables[f'table_{trait}'] = tr_t.describe(trait)
 
     for key in result_plots:
-        result_plots[key].savefig(f'results/{key}.png', dpi=300)
+        result_plots[key].savefig(f'{outplut_path}/{key}.png', dpi=300)
     
     for key in result_tables:
-        result_tables[key].to_excel(f'results/{key}.xlsx', index=False)
+        result_tables[key].to_excel(f'{outplut_path}/{key}.xlsx', index=False)
 
 
-# TODO: Normal arguments
 if __name__ == '__main__':
-    main('app\.ipynb_checkpoints\KAZ.csv', 'app\.ipynb_checkpoints\climate_tashtyp.csv')
+    
+    parser = argparse.ArgumentParser(description='A test program.')
+
+    parser.add_argument("tracheid_path", help="Path to csv tracheid data in Tracheids format.")
+    parser.add_argument("climate_path", help="Path to csv file with daily climate data in DailyDataFrame format.")
+    parser.add_argument("outplut_path", help="Path to save obtained plots and tables.")
+
+    args = parser.parse_args()
+
+    main(args['tracheid_path'], args['climate_path'], args['outplut_path'])
