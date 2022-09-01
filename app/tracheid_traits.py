@@ -101,7 +101,6 @@ class TracheidTraits:
         fig, axes = self.__get_subplots__(1, n, axes, subplots_kws)
         for i, group_data in enumerate(self.__data__.groupby('Tree')):
             tree, df = group_data
-            sns.set_style("white")
             sns.histplot(df[trait], ax=axes[i], color='black', kde=True, stat='probability')
             axes[i].set_title(tree)
 
