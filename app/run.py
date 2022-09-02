@@ -40,6 +40,10 @@ def exponential_scatterplot(tracheid, tracheid_traits, trait_type = 'D'):
     
     return y_min, fig, ax
 
+def plot(tr_t, trait):
+    fig, ax = tr_t.plot(trait, subplots_kws={'figsize': (7*5, 5), 'dpi':300}, plot_kws={'linewidth': 1}, mean_kws={'color': 'k', 'linewidth': 2}, std_kws={'color': 'gray', 'alpha': 0.5})
+    ax.set_ylabel(f'{trait} ({"rel. units" if "ind" in trait else "μm" })')
+    return fig, ax
 
 def main(tracheid_path, climate_path, outplut_path):
     climate_df = DailyDataFrame(pd.read_csv(climate_path))
@@ -96,6 +100,12 @@ def main(tracheid_path, climate_path, outplut_path):
         fig, ax = tr_t.qqplot(trait, subplots_kws={'sharex': 'all', 'sharey': 'all', 'figsize': (5*5, 5)})
         result_plots[f'qqplot_{trait}'] = fig
         result_tables[f'table_{trait}'] = tr_t.describe(trait)
+    
+    plt.rcParams['font.size'] = '18'
+
+    for trait in traits:
+        fig, ax = plot(tr_t, trait)
+        result_plots[f'plot_{trait}'] = fig
 
     for key in result_plots:
         result_plots[key].savefig(f'{outplut_path}/{key}.png', dpi=300)
