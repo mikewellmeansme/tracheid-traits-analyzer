@@ -88,6 +88,53 @@ class TracheidTraits:
     
     def get_trees(self) -> List[str]:
         return self.__trees__.copy()
+    
+    def plot(
+            self,
+            trait: str,
+            trees: Optional[List[str]] = None,
+            show_mean: bool = True,
+            show_std: bool = True,
+            plot_kws: Optional[Dict] = None,
+            mean_kws: Optional[Dict] = None,
+            std_kws: Optional[Dict] = None,
+            axes: Optional[Axes] = None,
+            subplots_kws: Optional[Dict] = None
+    ) -> Tuple[Figure, Axes]:
+    
+        self.__check_trait__(trait)
+        
+        trees = trees if trees else self.__trees__
+
+        for tree in trees:
+            self.__check_tree__(tree)
+        
+        plot_kws = plot_kws or {}
+        mean_kws = mean_kws or {}
+        std_kws = std_kws or {}
+
+        data = self.__data__[self.__data__['Tree'].isin(trees)]
+        groups_per_tree = data.groupby('Tree')
+
+        fig, axes = self.__get_subplots__(1, 1, axes, subplots_kws)
+
+        for tree in trees:
+            df = groups_per_tree.get_group(tree).reset_index()
+            axes.plot(df['Year'], df[trait], label=tree, **plot_kws)
+        
+        groups_per_year = data.groupby('Year')
+        if show_mean:
+            mean_df = groups_per_year.mean().reset_index()
+            axes.plot(mean_df['Year'], mean_df[trait], label='Mean', **mean_kws)
+            if show_std:
+                std_df = groups_per_year.std().reset_index()
+                axes.fill_between(std_df['Year'], mean_df[trait]-std_df[trait], mean_df[trait]+std_df[trait], **std_kws)
+        
+        axes.legend()
+        axes.set_title(trait)
+        axes.set_xlabel('Year')
+
+        return fig, axes
 
     def hist(
             self,
