@@ -143,13 +143,14 @@ class TracheidTraits:
         self.__check_trait__(x_trait)
         self.__check_trait__(y_trait)
 
-        trees = trees if trees else sorted(self.__trees__)
+        trees = trees or sorted(self.__trees__)
+
         for tree in trees:
             self.__check_tree__(tree)
 
-        approximator_kws = {} if approximator_kws is None else approximator_kws
-        plot_kws = {} if plot_kws is None else plot_kws
-        scatter_kws = {} if scatter_kws is None else scatter_kws
+        approximator_kws = approximator_kws or {}
+        plot_kws = plot_kws or {}
+        scatter_kws = scatter_kws or {}
 
         n = len(trees)
         fig, axes = self.__get_subplots__(1, n, axes, subplots_kws)
@@ -190,7 +191,7 @@ class TracheidTraits:
         self.__check_trait__(x_trait)
         self.__check_trait__(y_trait)
 
-        approximator_kws = {} if approximator_kws is None else approximator_kws
+        approximator_kws = approximator_kws or {}
 
         result = DataFrame({
             'Tree': [],
