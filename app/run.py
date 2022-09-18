@@ -41,7 +41,13 @@ def exponential_scatterplot(tracheid, tracheid_traits, trait_type = 'D'):
     return y_min, fig, ax
 
 def plot(tr_t, trait):
-    fig, ax = tr_t.plot(trait, subplots_kws={'figsize': (7*5, 5), 'dpi':300}, plot_kws={'linewidth': 1}, mean_kws={'color': 'k', 'linewidth': 2}, std_kws={'color': 'gray', 'alpha': 0.5})
+    fig, ax = tr_t.plot(
+        trait,
+        subplots_kws={'figsize': (7*5, 5), 'dpi':300},
+        plot_kws={'linewidth': 1},
+        mean_kws={'color': 'k', 'linewidth': 2},
+        std_kws={'color': 'gray', 'alpha': 0.5}
+    )
     ax.set_ylabel(f'{trait} ({"rel. units" if "ind" in trait else "μm" })')
     return fig, ax
 
