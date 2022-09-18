@@ -258,6 +258,28 @@ class TracheidTraits:
             coeffs[tree] = approximator.coeffs
 
         return result.reset_index(drop=True), coeffs
+    
+    def get_sample_depth(self) -> DataFrame:
+        result = self.__data__.groupby('Year').count().reset_index()
+        result = result[['Year', 'Tree']].rename(columns={'Tree': 'Depth'})
+        return result
+    
+    def plot_sample_depth(
+            self,
+            axes: Optional[Axes] = None,
+            subplots_kws: Optional[Dict] = None,
+            barplot_kws: Optional[Dict] = None
+        ) -> Tuple[Figure, Axes]:
+
+        barplot_kws = barplot_kws or {}
+
+        sample_depth = self.get_sample_depth()
+        fig, axes = self.__get_subplots__(1, 1, axes, subplots_kws)
+        axes.bar(sample_depth['Year'], sample_depth['Depth'], **barplot_kws)
+        axes.set_xlabel('Year')
+        axes.set_ylabel('Sample deth (trees)')
+
+        return fig, axes
 
     @staticmethod
     def __get_subplots__(

@@ -112,6 +112,12 @@ def main(tracheid_path, climate_path, outplut_path):
     
     plt.rcParams['font.size'] = '18'
 
+    fig, ax = tr_t.plot_sample_depth(
+        subplots_kws={'figsize': (7*5, 5), 'dpi':300},
+        barplot_kws={'color': 'gray', 'width': 1, 'alpha':0.5}
+    )
+    result_plots[f'barplot_sample_depth'] = fig
+
     for trait in traits:
         fig, ax = plot(tr_t, trait)
         result_plots[f'plot_{trait}'] = fig
