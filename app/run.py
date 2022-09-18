@@ -83,7 +83,7 @@ def main(tracheid_path, climate_path, outplut_path):
     
     result_tables['TracheidTraits'] = tr_t.get_traits()
     
-    traits = ['Dmean', 'Dmax', 'CWTmax', 'CWTmean', 'Dmean_ind', 'Dmax_ind', 'CWTmax_ind', 'CWTmean_ind']
+    traits = ['Dmean', 'Dmax', 'CWTmax', 'CWTmean', 'Dmean_ind', 'Dmax_ind', 'CWTmax_ind', 'CWTmean_ind', 'TRW']
     
     for trait in traits:
         def compare(df, index):
