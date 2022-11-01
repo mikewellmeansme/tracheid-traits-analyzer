@@ -92,7 +92,9 @@ class TracheidTraits:
     def plot(
             self,
             trait: str,
+            *,
             trees: Optional[List[str]] = None,
+            show_individual: bool = True,
             show_mean: bool = True,
             show_std: bool = True,
             plot_kws: Optional[Dict] = None,
@@ -118,9 +120,10 @@ class TracheidTraits:
 
         fig, axes = self.__get_subplots__(1, 1, axes, subplots_kws)
 
-        for tree in trees:
-            df = groups_per_tree.get_group(tree).reset_index()
-            axes.plot(df['Year'], df[trait], label=tree, **plot_kws)
+        if show_individual:
+            for tree in trees:
+                df = groups_per_tree.get_group(tree).reset_index()
+                axes.plot(df['Year'], df[trait], label=tree, **plot_kws)
         
         groups_per_year = data.groupby('Year')
         if show_mean:
