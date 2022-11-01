@@ -14,9 +14,11 @@ from zhutils.tracheids import Tracheids
 class TracheidTraits:
     __data__: DataFrame
     __trees__: List[str]
-    __names__: List[str] = ['TRW', '№', 'Dmax', 'Dmean', 'CWTmax', 'CWTmean']
+    __names__: List[str]
 
     def __init__(self, tracheids: Tracheids) -> None:
+        self.__names__ = ['TRW', '№', 'Dmax', 'Dmean', 'CWTmax', 'CWTmean']
+        
         max_values = tracheids.data.groupby(['Tree', 'Year']).max().reset_index()
         mean_values = tracheids.data.groupby(['Tree', 'Year']).mean().reset_index()
         data = max_values[['Tree', 'Year', 'TRW', '№']].copy()
