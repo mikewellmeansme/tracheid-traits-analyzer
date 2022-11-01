@@ -18,7 +18,7 @@ class TracheidTraits:
 
     def __init__(self, tracheids: Tracheids) -> None:
         self.__names__ = ['TRW', '№', 'Dmax', 'Dmean', 'CWTmax', 'CWTmean']
-        
+
         max_values = tracheids.data.groupby(['Tree', 'Year']).max().reset_index()
         mean_values = tracheids.data.groupby(['Tree', 'Year']).mean().reset_index()
         data = max_values[['Tree', 'Year', 'TRW', '№']].copy()
@@ -130,7 +130,7 @@ class TracheidTraits:
         groups_per_year = data.groupby('Year')
         if show_mean:
             mean_df = groups_per_year.mean().reset_index()
-            axes.plot(mean_df['Year'], mean_df[trait], label='Mean', **mean_kws)
+            axes.plot(mean_df['Year'], mean_df[trait], **mean_kws)
             if show_std:
                 std_df = groups_per_year.std().reset_index()
                 axes.fill_between(std_df['Year'], mean_df[trait]-std_df[trait], mean_df[trait]+std_df[trait], **std_kws)
