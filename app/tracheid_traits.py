@@ -178,6 +178,7 @@ class TracheidTraits:
             self,
             x_trait: str,
             y_trait: str,
+            *,
             trees: Optional[List[str]] = None,
             xlabel: Optional[str] = None,
             ylabel: Optional[str] = None,
