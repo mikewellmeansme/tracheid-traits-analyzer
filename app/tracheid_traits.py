@@ -6,7 +6,7 @@ from matplotlib.figure import Figure, Axes
 from pandas import DataFrame, unique, merge, concat
 from scipy import stats
 from sklearn.metrics import r2_score
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Iterable
 from zhutils.approximators import Approximator
 from zhutils.tracheids import Tracheids
 
@@ -308,7 +308,13 @@ class TracheidTraits:
                 **subplots_kws
             )
         else:
-            fig = axes[0].figure
+            if isinstance(axes, Iterable):
+                if len(axes.shape) == 2:
+                    fig = axes[0, 0].figure
+                else:
+                    fig = axes[0].figure
+            else:
+                fig = axes.figure
         return fig, axes
 
     def __check_trait__(self, trait: str) -> None:
