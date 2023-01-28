@@ -134,6 +134,7 @@ def scatter_tracheid_traits(
 
     n = len(trees)
     fig, axes = get_subplots(1, n, axes, subplots_kws)
+    axes = axes if n > 1 else [axes]
 
     groups = data.__data__.groupby('Tree')
 
@@ -158,7 +159,7 @@ def scatter_tracheid_traits(
         axes[i].set_ylabel(ylabel if ylabel else y_trait)
         axes[i].legend(frameon=False)
 
-    return fig, axes
+    return fig, axes if n > 1 else axes[0]
 
 
 def plot_tracheid_traits_sample_depth(
