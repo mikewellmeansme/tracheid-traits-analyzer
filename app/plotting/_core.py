@@ -32,7 +32,7 @@ def plot_tracheid_traits(
     
     data.__check_trait__(trait)
     
-    trees = trees if trees else data.__trees__
+    trees = trees or data.__trees__
 
     for tree in trees:
         data.__check_tree__(tree)
@@ -69,38 +69,59 @@ def plot_tracheid_traits(
 def hist_tracheid_traits(
         data : TracheidTraits,
         trait: str,
+        *,
+        trees: Optional[List[str]] = None,
         axes: Optional[List[Axes]] = None,
-        subplots_kws: Optional[Dict] = None
+        subplots_kws: Optional[Dict] = None,
+        histplot_kws:  Optional[Dict] = None
 ) -> Tuple[Figure, List[Axes]]:
 
     data.__check_trait__(trait)
-    n = len(data.__trees__)
+
+    trees = trees or sorted(data.__trees__)
+    histplot_kws = histplot_kws or {'color': 'black', 'kde': True, 'stat':'probability'}
+
+    n = len(trees)
     fig, axes = get_subplots(1, n, axes, subplots_kws)
-    for i, group_data in enumerate(data.__data__.groupby('Tree')):
-        tree, df = group_data
-        sns.histplot(df[trait], ax=axes[i], color='black', kde=True, stat='probability')
+    axes = axes if n > 1 else [axes]
+
+    groups = data.__data__.groupby('Tree')
+
+    for i, tree in enumerate(trees):
+        df = groups.get_group(tree)
+        sns.histplot(df[trait], ax=axes[i], **histplot_kws)
         axes[i].set_title(tree)
 
-    return fig, axes
+    return fig, axes if n > 1 else axes[0]
 
 
 def qqplot_tracheid_traits(
         data: TracheidTraits,
         trait: str,
-        dist: str = 'norm',
+        *,
+        trees: Optional[List[str]] = None,
         axes: Optional[List[Axes]] = None,
-        subplots_kws: Optional[Dict] = None
+        subplots_kws: Optional[Dict] = None,
+        probplot_kws: Optional[Dict] = None
 ) -> Tuple[Figure, List[Axes]]:
 
     data.__check_trait__(trait)
-    n = len(data.__trees__)
+
+    trees = trees or sorted(data.__trees__)
+    probplot_kws = probplot_kws or {'dist': 'norm'}
+
+    n = len(trees)
     fig, axes = get_subplots(1, n, axes, subplots_kws)
-    for i, group_data in enumerate(data.__data__.groupby('Tree')):
-        tree, df = group_data
-        stats.probplot(df[trait], dist=dist, plot=axes[i])
+    axes = axes if n > 1 else [axes]
+
+    groups = data.__data__.groupby('Tree')
+
+    for i, tree in enumerate(trees):
+        df = groups.get_group(tree)
+        stats.probplot(df[trait], plot=axes[i], **probplot_kws)
         axes[i].set_title(tree)
 
-    return fig, axes
+    return fig, axes if n > 1 else axes[0]
 
 
 def scatter_tracheid_traits(
