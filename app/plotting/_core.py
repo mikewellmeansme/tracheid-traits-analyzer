@@ -175,7 +175,7 @@ def plot_tracheid_traits_sample_depth(
     fig, axes = get_subplots(1, 1, axes, subplots_kws)
     axes.bar(sample_depth['Year'], sample_depth['Depth'], **barplot_kws)
     axes.set_xlabel('Year')
-    axes.set_ylabel('Sample deth (trees)')
+    axes.set_ylabel('Sample depth (trees)')
 
     return fig, axes
 
