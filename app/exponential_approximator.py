@@ -31,7 +31,7 @@ class Exponential(Approximator):
 
     def get_equation(self, precision: int = 2) -> str:
         y_min, y_as, a = self.coeffs
-        return f"$ {y_min:.{precision}f} + {y_as-y_min:.{precision}f}·e^{{−{a:.{precision}f}x}}$"
+        return f"$ {y_min:.{precision}f} + {y_as-y_min:.{precision}f}·(1-e^{{−{a:.{precision}f}x}})$"
 
     @property
     def coeffs(self) -> List[float]:
